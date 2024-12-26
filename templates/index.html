@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Timeline Maker</title>
+    <style>
+        /* 全局樣式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+    
+        h1 {
+            font-size: 1.8em;
+        }
+    
+        h2 {
+            font-size: 1.4em;
+        }
+    
+        /* 頂部按鈕區域樣式 */
+        #topRightButtons {
+            position: fixed; /* 固定在視窗上 */
+            top: 10px;       /* 距離畫面頂部 10px */
+            right: 25px;     /* 距離畫面右側 10px */
+            display: flex;   /* 按鈕水平排列 */
+            gap: 10px;       /* 按鈕之間的間距 */
+            z-index: 1000;   /* 保證在其他內容之上 */
+        }
+    
+        #saveButton, #uploadButton {
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    
+        #saveButton:hover, #uploadButton:hover {
+            background-color: #1976D2; /* 當鼠標懸停時改變顏色 */
+        }
+    
+        #uploadInput {
+            display: none; /* 隱藏檔案選擇框 */
+        }
+    
+        /* 編輯按鈕樣式 */
+        .edit-button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #FFD700;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    
+        .edit-button:hover {
+            background-color: #FFC107;
+        }
+    
+        /* 編輯表單彈窗樣式 */
+        #editFormContainer {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -20%);
+            width: 500px; /* 增加彈窗寬度 */
+            background-color: white;
+            padding: 20px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+    
+        #editForm input, #editForm select, #editForm textarea {
+            width: calc(100% - 20px); /* 讓所有欄位對齊並適應彈窗寬度 */
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    
+        #editForm textarea {
+            resize: vertical; /* 允許使用者手動調整高度 */
+            font-size: 14px; /* 讓文字大小更清楚 */
+            padding: 8px;
+        }
+    
+        #editForm button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    
+        #editForm button.save-button {
+            background-color: #4CAF50; /* 綠色保存按鈕 */
+            color: white;
+        }
+    
+        #editForm button.save-button:hover {
+            background-color: #45a049;
+        }
+    
+        #editForm button.cancel-button {
+            background-color: #F44336; /* 紅色取消按鈕 */
+            color: white;
+            margin-left: 10px;
+        }
+    
+        #editForm button.cancel-button:hover {
+            background-color: #D32F2F;
+        }
+    
+        /* 表單按鈕樣式 */
+        #entryForm button {
+            padding: 6px 12px;
+            font-size: 14px; /* 調整字體大小，讓按鈕更顯眼 */
+            border: none;
+            border-radius: 8px; /* 圓角設計 */
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s; /* 添加過渡效果 */
+        }
+    
+        #entryForm button#nextButton {
+            background: linear-gradient(to right, #4CAF50, #45a049); /* 綠色漸變背景 */
+            color: white;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* 添加陰影 */
+        }
+    
+        #entryForm button#nextButton:hover {
+            background: linear-gradient(to right, #45a049, #3e8e41); /* 懸停時變深的綠色 */
+            box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2); /* 陰影加深 */
+        }
+    
+        #entryForm button#nextButton:active {
+            transform: scale(0.98); /* 按壓時按鈕微微縮小 */
+        }
+    
+        #entryForm button#clearButton {
+            background: linear-gradient(to right, #f44336, #e53935); /* 紅色漸變背景 */
+            color: white;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* 添加陰影 */
+        }
+    
+        #entryForm button#clearButton:hover {
+            background: linear-gradient(to right, #e53935, #d32f2f); /* 懸停時變深的紅色 */
+            box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2); /* 陰影加深 */
+        }
+    
+        #entryForm button#clearButton:active {
+            transform: scale(0.98); /* 按壓時按鈕微微縮小 */
+        }
+    
+        /* 總結/刪除按鈕樣式 */
+        #copyButton, #deleteButton {
+            position: absolute;
+            top: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    
+        #copyButton {
+            right: 10px;
+        }
+    
+        #deleteButton {
+            right: 100px;
+            background-color: #FFCDD2;
+            color: #ffffff;
+        }
+    
+        /* 數據展示樣式 */
+        #allData {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            position: relative;
+            display: none;
+        }
+    
+        .entry {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+    
+        .highlighted {
+            color: red;
+        }
+    
+        .entry-content {
+            flex: 1;
+            text-indent: -1em;
+            padding-left: 1em;
+        }
+    
+        /* 容器樣式 */
+        #container {
+            display: flex;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+    
+        #mainContent {
+            width: 100%;
+        }
+    
+        /* 說明區域樣式 */
+        #explanation {
+            position: absolute;
+            top: 80px;
+            right: 210px;
+            width: 40%;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+
+    <script src="{{ url_for('static', filename='plotly-latest.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plot.js') }}"></script>
+</head>
+<body>
+    <!-- Save and Upload Buttons -->
+    <div id="topRightButtons">
+        <button id="saveButton" onclick="saveSession()">存檔</button>
+        <button id="uploadButton" onclick="document.getElementById('uploadInput').click()">開啟舊檔</button>
+        <input type="file" id="uploadInput" accept=".json" onchange="uploadSession()" style="display: none;">
+    </div>
+
+    <div id="container">
+        <section id="mainContent">
+            <h1>製作病人事件時間軸</h1>
+            <form id="entryForm">
+                <label for="patient_number">病歷號:</label>
+                <input type="text" id="patient_number" name="patient_number" required><br><br>
+                
+                <label for="gender">性別:</label>
+                <select id="gender" name="gender" required>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select><br><br>
+                
+                <label for="age">年齡:</label>
+                <input type="number" id="age" name="age" required><br><br>
+                
+                <label for="date">日期:</label>
+                <input type="date" id="date" name="date" required oninput="checkFormCompletion()"><br><br>
+                
+                <label for="level-1-category">資料類別 (第一層):</label>
+                <select id="level-1-category" name="level-1-category" required onchange="updateSecondLevelOptions(); checkFormCompletion()">
+                    <option value="" disabled selected>選擇第一層類別</option>
+                    <option value="ER">ER</option>
+                    <option value="OPD">OPD</option>
+                    <option value="IPD">IPD</option>
+                </select><br><br>
+                
+                <label for="level-2-category">資料類別 (第二層):</label>
+                <select id="level-2-category" name="level-2-category" required onchange="checkFormCompletion()">
+                    <option value="" disabled selected>選擇第二層類別</option>
+                </select><br><br>
+                
+                <label for="description">內容:</label>
+                <textarea id="description" name="description" rows="6" required oninput="checkFormCompletion()" style="width: 30%;"></textarea><br><br>
+                
+                <button type="button" id="nextButton" onclick="addEntry()" disabled>加入並製作</button>
+                <button type="button" id="clearButton" onclick="clearEntries()">清除歷史資料</button>
+            </form>
+            <div id="timeline"></div>
+            <div id="allData"></div>
+        </section>
+        <aside id="explanation">
+            <h2>App Explanation</h2>
+            <p>這個應用程式可以讓您為病人的事件建立時間軸。輸入病人的基本資訊，選擇日期、類別，並為每個事件添加描述。點擊<strong>「加入並製作」</strong>即可將事件添加到時間軸中，並實時更新。使用「清除歷史資料」按鈕可以重置所有資料並開始新的時間軸。如果有誤植資料，可以將該比資料勾選並點擊<strong>「刪除」</strong>即可刪除，也可點擊<strong>「編輯」</strong>進行修改。點擊<strong>「存檔」</strong>即可儲存目前內容ㄝ，下次繼續時再點擊<strong>「開啟舊檔」</strong>該檔案即可</p>
+
+            <p>建議：可以點擊<strong>「複製內容」</strong>將其丟到ChatGPT並使用下方建議指令生成Present illness初版</p>
+            <button id="toggleExplanationButton" onclick="toggleExplanation()">ChatGPT參考指令(點擊展開)</button>
+            <div id="explanationContent" style="display: none;">
+                <h3>Present Illness Summarization Instructions</h3>
+                <p>Based on the above content, summarize the medical record of Present Illness as follows:</p>
+                <ol>
+                    <li>Start with: “This is a [xx]-year-old [male/female] with [underlying conditions, if available].”</li>
+                    <li>Mark the first date explicitly to introduce the timeline.</li>
+                    <li>For related or follow-up events, connect them in chronological order without repeating dates unnecessarily.</li>
+                    <li>For special or unrelated events (e.g., admissions, surgeries), explicitly mention the date.</li>
+                    <li>Use concise, direct sentences, and maintain the professional style of medical record writing.</li>
+                    <li>Exclude irrelevant or redundant details, keeping only key findings and events.</li>
+                    <li>Make them in one paragraph.</li>
+                </ol>
+            </div>
+        </aside>
+    </div>
+    <script>
+        function checkFormCompletion() {
+            const date = document.getElementById('date').value;
+            const level1Category = document.getElementById('level-1-category').value;
+            const level2Category = document.getElementById('level-2-category').value;
+            const description = document.getElementById('description').value;
+            const nextButton = document.getElementById('nextButton');
+            nextButton.disabled = !(date && level1Category && level2Category && description);
+        }
+
+        function toggleExplanation() {
+            const explanationContent = document.getElementById('explanationContent');
+            const toggleButton = document.getElementById('toggleExplanationButton');
+            if (explanationContent.style.display === 'none') {
+                explanationContent.style.display = 'block';
+                toggleButton.innerText = 'ChatGPT參考指令(點擊收合)';
+            } else {
+                explanationContent.style.display = 'none';
+                toggleButton.innerText = 'ChatGPT參考指令(點擊展開)';
+            }
+        }
+    </script>
+</body>
+</html>
